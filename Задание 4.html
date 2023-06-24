@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Приложение</title>
+</head>
+<body>
+    <input type="text" id="widthInput" placeholder="Введите ширину">
+    <input type="text" id="heightInput" placeholder="Введите высоту">
+    <button id="submitButton">Показать картинку</button>
+
+    <div id="imageContainer"></div>
+
+    <script>
+        document.getElementById('submitButton').addEventListener('click', async function() {
+            const width = parseInt(document.getElementById('widthInput').value);
+            const height = parseInt(document.getElementById('heightInput').value);
+
+            // Проверка на ввод чисел
+            if (isNaN(width) || isNaN(height)) {
+                displayErrorMessage('Одно из чисел не является числом');
+                return;
+            }
+
+            // Проверка на диапазон от 100 до 300
+            if (width < 100 || width > 300 || height < 100 || height > 300) {
+                displayErrorMessage('Одно из чисел вне диапазона от 100 до 300');
+                return;
+            }
+
+            const imageUrl = `https://picsum.photos/${width}/${height}`;
+
+            try {
+                const response = await fetch(imageUrl);
+                if (response.ok) {
+                    const imageBlob = await response.blob();
+                    const imageUrlObject = URL.createObjectURL(imageBlob);
+                    displayImage(imageUrlObject);
+                } else {
+                    displayErrorMessage('Ошибка при получении картинки');
+                }
+            } catch (error) {
+                displayErrorMessage('Ошибка при выполнении запроса');
+            }
+        });
+
+        function displayImage(url) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = `<img src="${url}" alt="Картинка">`;
+        }
+
+        function displayErrorMessage(message) {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = `<p>${message}</p>`;
+        }
+    </script>
+</body>
+</html>

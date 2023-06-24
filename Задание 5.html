@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Приложение</title>
+</head>
+<body>
+    <input type="text" id="pageInput" placeholder="Номер страницы">
+    <input type="text" id="limitInput" placeholder="Лимит">
+    <button id="requestButton">Запрос</button>
+
+    <ul id="imageList"></ul>
+
+    <script>
+        const pageInput = document.getElementById('pageInput');
+        const limitInput = document.getElementById('limitInput');
+        const requestButton = document.getElementById('requestButton');
+        const imageList = document.getElementById('imageList');
+
+        // Проверка на наличие сохраненных данных в localStorage
+        if (localStorage.getItem('lastRequestData')) {
+            const lastRequestData = JSON.parse(localStorage.getItem('lastRequestData'));
+            pageInput.value = lastRequestData.page;
+            limitInput.value = lastRequestData.limit;
+            displayImages(lastRequestData.images);
+        }
+
+        requestButton.addEventListener('click', function() {
+            const page = parseInt(pageInput.value);
+            const limit = parseInt(limitInput.value);
+
+            let errorMessage = '';
+
+            if (isNaN(page) || page < 1 || page > 10) {
+                errorMessage += 'Номер страницы вне диапазона от 1 до 10. ';
+            }
+
+            if (isNaN(limit) || limit < 1 || limit > 10) {
+                errorMessage += 'Лимит вне диапазона от 1 до 10. ';
+            }
+
+            if (errorMessage !== '') {
+                displayErrorMessage(errorMessage);
+                return;
+            }
+
+            const url = `https://picsum.photos/v2/list?page=${page}&limit=${limit}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const requestData = {
+                        page: page,
+                        limit: limit,
+                        images: data
+                    };
+
+                    localStorage.setItem('lastRequestData', JSON.stringify(requestData));
+                    displayImages(data);
+                })
+                .catch(error => {
+                    displayErrorMessage('Ошибка при выполнении запроса');
+                    console.error(error);
+                });
+        });
+
+        function displayImages(images) {
+            imageList.innerHTML = '';
+
+            images.forEach(function(image) {
+                const imageUrl = image.download_url;
+                const listItem = document.createElement('li');
+                const imageElement = document.createElement('img');
+                imageElement.src = imageUrl;
+                listItem.appendChild(imageElement);
+                imageList.appendChild(listItem);
+            });
+        }
+
+        function displayErrorMessage(message) {
+            imageList.innerHTML = `<li>${message}</li>`;
+        }
+    </script>
+</body>
+</html>
